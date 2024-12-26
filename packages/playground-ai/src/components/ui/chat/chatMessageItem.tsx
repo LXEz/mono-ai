@@ -16,7 +16,7 @@ export function ChatMessageItem({
   const { toast } = useToast();
   const extractActionData = (originalData: string) => {
     // Match all pairs of $$icon$$ label
-    const matches = originalData.matchAll(/\$\$(.*?)\$\$\s*(.*?)(?=\$\$|$)/g);
+    const matches = originalData.matchAll(/\$\$(&#\d+;&#\d+;)\s*(.*?)(?=\$\$|$)/g);
     const results = [];
 
     for (const match of matches) {
