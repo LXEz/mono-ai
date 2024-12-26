@@ -1,0 +1,14 @@
+services:
+  xiaoduo-ai-copilot-api:
+    container_name: xiaoduo-ai-copilot-api
+    image: #{container_registry}#/#{container_repository}#:532
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      #{DOCKER_SUBNET_NAME}#:
+        ipv4_address: #{WECHAT_IP_ADDR}#
+
+networks:
+  #{DOCKER_SUBNET_NAME}#:
+    external: true

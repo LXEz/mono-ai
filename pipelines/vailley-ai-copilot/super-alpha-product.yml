@@ -1,0 +1,67 @@
+parameters:
+  - name: skip_code_scan
+    displayName: Skip Code Scan
+    type: boolean
+    default: true
+
+trigger:
+  branches:
+    include:
+      - refs/tags/vailley-mono-vailley-ai-copilot
+
+pr: none
+
+variables:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/tags/vailley-mono-vailley-ai-copilot') }}:
+      - group: vailley-mono-vailley-ai-copilot
+
+pool:
+  name: $(agent_pool)
+
+stages:
+  - template: ../templates/ci.yml
+    parameters:
+      skip_code_scan: ${{ parameters.skip_code_scan }}
+      service_connection: $(sonar_service_connection)
+      organization: $(sonar_organization)
+      project_key: $(sonar_project_key)
+      project_name: $(sonar_project_name)
+      sources: $(sonar_sources)
+  - stage: cd
+    displayName: CD
+    dependsOn: [ci]
+    jobs:
+      - job: build_deploy
+        displayName: Build & Deploy
+        steps:
+          - checkout: self
+            displayName: Checkout source
+            clean: true
+          - task: Docker@2
+            displayName: Build image
+            inputs:
+              containerRegistry: '$(service_connection_acr)'
+              repository: '$(container_repository)'
+              command: 'build'
+              Dockerfile: './packages/vailley-ai-copilot/Dockerfile'
+              buildContext: '.'
+              arguments: '--build-arg NEXT_PUBLIC_SUPERALPHA_API=''$(next_public_superalpha_api)'' --build-arg NEXT_PUBLIC_SENTIMENT_APP_ID=$(next_public_sentiment_app_id) --build-arg NEXT_PUBLIC_SENTIMENT_API_KEY=$(next_public_sentiment_api_key) --build-arg CONVERSATIONAL_DASHBOARD_API_BASE_URL=''$(conversational_dashboard_api_base_url)'' --build-arg CONVERSATIONAL_DASHBOARD_APP_ID=''$(conversational_dashboard_app_id)'' --build-arg CONVERSATIONAL_DASHBOARD_AUTHORIZATION=''$(conversational_dashboard_authorization)'''
+          - task: Docker@2
+            displayName: Push image
+            inputs:
+              command: push
+              containerRegistry: $(service_connection_acr)
+              repository: $(container_repository)
+          - task: NodeTool@0
+            inputs:
+              versionSource: 'spec'
+              versionSpec: '20.x'
+              checkLatest: true
+          - task: AzureCLI@2
+            displayName: Restart vailley-ai-copilot
+            inputs:
+              azureSubscription: '$(service_connection_arm)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az vm run-command invoke -g $(resource_group) -n $(vm_name) --command-id RunShellScript --scripts "sudo /bin/sh /app/vailley-mono/vailley-ai-copilot/restart-vailley-ai-copilot-container.sh $(docker_service_name) $(container_registry) $(container_repository) $(Build.BuildId)"

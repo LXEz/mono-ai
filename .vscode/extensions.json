@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "nrwl.angular-console",
+    "streetsidesoftware.code-spell-checker",
+    "johnpapa.vscode-peacock",
+    "editorconfig.editorconfig",
+    "gruntfuggly.todo-tree",
+    "esbenp.prettier-vscode",
+    "mhutchie.git-graph"
+  ]
+}

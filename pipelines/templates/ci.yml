@@ -1,0 +1,48 @@
+parameters:
+  - name: skip_code_scan
+    type: boolean
+    default: false
+  - name: service_connection
+    type: string
+  - name: organization
+    type: string
+  - name: project_key
+    type: string
+  - name: project_name
+    type: string
+  - name: sources
+    type: string
+
+stages:
+  - stage: ci
+    displayName: CI
+    jobs:
+      - job: code_scan
+        displayName: Scan code
+        pool:
+          name: Azure Pipelines
+        steps:
+          - ${{ if eq(parameters.skip_code_scan, true) }}:
+              - checkout: none
+              - script: echo 'Code scan is skipped'
+                displayName: Skip code scan
+          - ${{ if eq(parameters.skip_code_scan, false) }}:
+              - checkout: self
+                displayName: Checkout source
+                clean: true
+              - task: SonarCloudPrepare@2
+                displayName: Sonar cloud prepare
+                inputs:
+                  SonarCloud: ${{parameters.service_connection}}
+                  organization: ${{parameters.organization}}
+                  scannerMode: 'CLI'
+                  configMode: 'manual'
+                  cliProjectKey: ${{parameters.project_key}}
+                  cliProjectName: ${{parameters.project_name}}
+                  cliSources: ${{parameters.sources}}
+              - task: SonarCloudAnalyze@2
+                displayName: Sonar cloud analyze
+              - task: SonarCloudPublish@2
+                displayName: Sonar cloud publish
+                inputs:
+                  pollingTimeoutSec: '300'

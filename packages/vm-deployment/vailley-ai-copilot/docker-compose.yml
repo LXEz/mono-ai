@@ -1,0 +1,15 @@
+services:
+  vailley-ai-copilot:
+    hostname: vailley-ai-copilot
+    depends_on:
+      -  #{DB_CONTAINER_NAME}#
+      - redis
+    image: #{CONTAINER_REGISTRY}#/vailley-mono-vailley-ai-copilot:284
+    restart: unless-stopped
+    networks:
+      #{DOCKER_SUBNET_NAME}#:
+      ipv4_address: #{T_AVATAR_IP_ADDR}#
+
+networks:
+  #{DOCKER_SUBNET_NAME}#:
+  external: true

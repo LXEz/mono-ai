@@ -1,0 +1,47 @@
+#!/bin/bash
+
+################################################################################
+# Script Name : restart-xiaoduo-ai-copilot-api-container.sh
+# Description : restart xiaoduo-ai-copilot-api containers.
+# Usage       : sh restart-xiaoduo-ai-copilot-api-container.sh SERVICE_NAME REGISTRY_URL REPO_NAME TAG
+# Author      : VAILLEY AI
+# Version     : 1.0
+################################################################################
+
+# apps dir: /app/vailley-mono/xiaoduo-ai-copilot-api
+# Backend container SERVICE_NAME: [xiaoduo-ai-copilot-api]
+SERVICE_NAME=$1
+REGISTRY_URL=$2
+REPO_NAME=$3
+TAG=$4
+
+COMPOSE_FILE_PATH="/app/vailley-mono/xiaoduo-ai-copilot-api"
+
+CONTAINER_NAME=`docker ps -a|grep ${SERVICE_NAME}|awk '{print $NF}'`
+echo ${CONTAINER_NAME}
+# CONTAINER_STATUS:
+#          running,
+#          exited,
+#          No such container: ${CONTAINER_NAME}
+CONTAINER_STATUS=`docker container inspect --format '{{.State.Status}}' ${CONTAINER_NAME}`
+echo ${CONTAINER_STATUS}
+
+cd ${COMPOSE_FILE_PATH}
+
+if [ "${CONTAINER_STATUS}" = "running" ]; then
+    sed -i "s/\(image: ${REGISTRY_URL}\/${REPO_NAME}:\)[^ ]*/\1${TAG}/" "${COMPOSE_FILE_PATH}/docker-compose.yml"
+
+    # restart container
+    docker compose down ${SERVICE_NAME}
+    docker compose up -d ${SERVICE_NAME}
+elif [ "${CONTAINER_STATUS}" = "exited" ]; then
+    echo "Container ${CONTAINER_NAME} is exited ..."
+    sed -i "s/\(image: ${REGISTRY_URL}\/${REPO_NAME}:\)[^ ]*/\1${TAG}/" "${COMPOSE_FILE_PATH}/docker-compose.yml"
+
+    # start container
+    docker compose up -d ${SERVICE_NAME}
+else
+    echo "No such container: ${CONTAINER_NAME}"
+    sed -i "s/\(image: ${REGISTRY_URL}\/${REPO_NAME}:\)[^ ]*/\1${TAG}/" "${COMPOSE_FILE_PATH}/docker-compose.yml"
+    docker compose up -d ${SERVICE_NAME}
+fi

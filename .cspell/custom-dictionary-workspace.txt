@@ -1,0 +1,11 @@
+addgroup
+adduser
+libc
+nextjs
+qrconnect
+snsapi
+superalpha
+unionid
+vailley
+wechat
+xiaoduo

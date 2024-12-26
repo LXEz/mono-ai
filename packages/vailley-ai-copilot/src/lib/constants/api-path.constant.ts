@@ -1,0 +1,6 @@
+export const SUPERALPHA_CHAT = `/chats`;
+export const SUPERALPHA_CHAT_APPID = "3f53b40b1425d3e39dbade84f96eb59d";
+export const SUPERALPHA_CHAT_Access = "Access";
+export const SUPERALPHA_CHAT_API_KEY = "940be496a259436e896197a9f66a672dac396b773822fa3382bed6c4375832ea5035c4736a3fd16ca9bb98a65a4125d0e4c2d5b86cc37c48dc8caedf0670eb318844e6e39bd3336585a650f8ffa6aa37";
+
+export const REWRITE_SUPERALPHA_API = "/api/chats";
